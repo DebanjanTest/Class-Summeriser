@@ -1,8 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+import { generateSummary } from './actions';
 
 export default function HomePage() {
   const [isRecording, setIsRecording] = useState(false);
@@ -41,27 +39,17 @@ export default function HomePage() {
     setSummary(null);
 
     try {
-      const audioData = await audioFile.arrayBuffer();
-      const audioPart = {
-        inlineData: {
-          data: Buffer.from(audioData).toString('base64'),
-          mimeType: 'audio/mp3',
-        },
-      };
+      const base64Audio = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.readAsDataURL(audioFile);
+      });
 
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const prompt = `
-        You are a helpful education assistant. Your task is to summarize a class lecture.
-        Based on the provided audio transcription, please provide a comprehensive summary with the following sections:
-        1. Class Summary: A short, paragraph-long summary of the main topics.
-        2. Topics Taught: A bulleted list of the key concepts covered.
-        3. Points to Remember: A bulleted list of the most important takeaways and key terms.
-        4. Important Exam Questions: Three to five potential questions that could be on a test, based on the content.
-      `;
-
-      const result = await model.generateContent([prompt, audioPart]);
-      const response = await result.response;
-      setSummary(response.text());
+      const summaryText = await generateSummary(base64Audio);
+      setSummary(summaryText);
     } catch (error) {
       console.error('Error generating summary:', error);
       alert('Failed to generate summary. Please try again.');
@@ -74,21 +62,21 @@ export default function HomePage() {
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>Class Notes AI</h1>
       <p>Record your lecture or upload an audio file to get a detailed summary.</p>
-      
+
       <div style={{ marginTop: '2rem' }}>
-        <button 
+        <button
           onClick={isRecording ? stopRecording : startRecording}
           style={{ padding: '10px 20px', fontSize: '1rem', cursor: 'pointer', marginRight: '1rem' }}
         >
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
-        
-        <input 
-          type="file" 
-          accept="audio/*" 
+
+        <input
+          type="file"
+          accept="audio/*"
           onChange={(e) => setAudioFile(e.target.files[0])}
         />
-        
+
         {audioFile && <p>File selected: {audioFile.name}</p>}
       </div>
 
