@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  basePath: '/Class-Summeriser',
-  images: {
-    unoptimized: true,
-  },
+  // Config removed for Vercel compatibility
 };
 
 export default nextConfig;
