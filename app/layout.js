@@ -1,9 +1,17 @@
+import { Outfit } from 'next/font/google';
 import './globals.css';
+
+const outfit = Outfit({ subsets: ['latin'] });
+
+export const metadata = {
+  title: 'Class Notes AI',
+  description: 'AI-powered class lecture summarization tool',
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={outfit.className}>{children}</body>
     </html>
   );
 }
