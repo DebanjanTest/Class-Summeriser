@@ -41,11 +41,18 @@ export default function HomePage() {
     setSummary(null);
 
     try {
-      const audioData = await audioFile.arrayBuffer();
+      const getBase64 = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+
+      const base64Data = await getBase64(audioFile);
       const audioPart = {
         inlineData: {
-          data: Buffer.from(audioData).toString('base64'),
-          mimeType: 'audio/mp3',
+          data: base64Data,
+          mimeType: audioFile.type || 'audio/mp3',
         },
       };
 
